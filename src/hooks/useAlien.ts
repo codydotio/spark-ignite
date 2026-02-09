@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { AlienUser, UserStats, FeedItem, ChainData, Spark } from "@/lib/types";
 import { verifyIdentity, sendPayment } from "@/lib/alien-bridge";
 
@@ -73,7 +73,7 @@ export function useAlien() {
     }
   }, []);
 
-  const createSpark = useCallback(async (title: string, description: string, goal: number, category: string) => {
+  const createSpark = useCallback(async (title: string, description: string, goal: number, category: string): Promise<Spark> => {
     if (!user) throw new Error("Not verified");
     const res = await fetch("/api/spark", {
       method: "POST",
@@ -84,9 +84,40 @@ export function useAlien() {
     if (data.error) throw new Error(data.error);
     if (data.stats) { setStats(data.stats); saveSession(user, data.stats); }
     window.dispatchEvent(new CustomEvent("ignite-action"));
-    return data.spark;
+    return data.spark as Spark;
   }, [user]);
 
+  // Pledge = free vote, 1 person = 1 vote toward ignition
+  const pledgeSpark = useCallback(async (sparkId: string): Promise<void> => {
+    if (!user) throw new Error("Not verified");
+    const res = await fetch("/api/pledge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sparkId, pledgerId: user.id, displayName: user.displayName }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    if (data.stats) { setStats(data.stats); saveSession(user, data.stats); }
+    window.dispatchEvent(new CustomEvent("ignite-action"));
+  }, [user]);
+
+  // Fund = contribute tokens (any amount)
+  const fundSpark = useCallback(async (sparkId: string, amount: number): Promise<void> => {
+    if (!user) throw new Error("Not verified");
+    const payment = await sendPayment("ignite_fund", amount, `Fund spark ${sparkId}`);
+    if (!payment.success) throw new Error("Payment failed");
+    const res = await fetch("/api/back", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sparkId, backerId: user.id, displayName: user.displayName, amount, txHash: payment.txHash }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    if (data.stats) { setStats(data.stats); saveSession(user, data.stats); }
+    window.dispatchEvent(new CustomEvent("ignite-action"));
+  }, [user]);
+
+  // Keep old backSpark for backwards compat (combines pledge + fund)
   const backSpark = useCallback(async (sparkId: string, amount: number, note?: string) => {
     if (!user) throw new Error("Not verified");
     const payment = await sendPayment("ignite_back", amount, `Back spark ${sparkId}`);
@@ -109,7 +140,7 @@ export function useAlien() {
     clearSession();
   }, []);
 
-  return { user, stats, isVerifying, error, verify, createSpark, backSpark, logout };
+  return { user, stats, isVerifying, error, verify, createSpark, pledgeSpark, fundSpark, backSpark, logout };
 }
 
 export function useIgniteData() {

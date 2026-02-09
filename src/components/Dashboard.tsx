@@ -17,14 +17,13 @@ interface Props {
   currentUserId: string;
   displayName: string;
   onCreateSpark: () => void;
-  onBack: (sparkId: string, amount: number, note?: string) => Promise<void>;
-  onShare?: (spark: Spark) => void;
+  onTapSpark: (spark: Spark) => void;
   onLogout: () => void;
 }
 
 type Tab = "sparks" | "feed" | "graph";
 
-export default function Dashboard({ sparks, feedItems, chainData, stats, currentUserId, displayName, onCreateSpark, onBack, onShare, onLogout }: Props) {
+export default function Dashboard({ sparks, feedItems, chainData, stats, currentUserId, displayName, onCreateSpark, onTapSpark, onLogout }: Props) {
   const [tab, setTab] = useState<Tab>("sparks");
   const [filter, setFilter] = useState<"all" | "active" | "ignited">("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -118,7 +117,7 @@ export default function Dashboard({ sparks, feedItems, chainData, stats, current
 
             <div className="space-y-3">
               {filteredSparks.map((spark) => (
-                <SparkCard key={spark.id} spark={spark} currentUserId={currentUserId} onBack={onBack} onShare={onShare} />
+                <SparkCard key={spark.id} spark={spark} currentUserId={currentUserId} onTap={onTapSpark} />
               ))}
             </div>
 

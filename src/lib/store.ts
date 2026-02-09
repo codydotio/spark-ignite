@@ -146,7 +146,7 @@ export function backSpark(
   if (!spark) return { error: "Spark not found" };
   if (spark.status !== "active") return { error: "Spark already ignited" };
   if (spark.creatorId === backerId) return { error: "Can't back your own spark" };
-  if (amount < 1 || amount > 10) return { error: "Amount must be 1-10" };
+  if (amount < 1 || amount > 100) return { error: "Amount must be 1-100" };
 
   const balance = balances.get(backerId) || 0;
   if (balance < amount) return { error: "Insufficient balance" };
@@ -189,6 +189,50 @@ export function backSpark(
   }
 
   return backing;
+}
+
+export function pledgeSpark(
+  sparkId: string, pledgerId: string
+): Spark | { error: string } {
+  if (!users.has(pledgerId)) return { error: "Not verified" };
+  const spark = sparks.get(sparkId);
+  if (!spark) return { error: "Spark not found" };
+  if (spark.status !== "active") return { error: "Spark already ignited" };
+  if (spark.creatorId === pledgerId) return { error: "Can't pledge your own spark" };
+
+  // Add pledger to backerIds if not already there
+  if (!spark.backerIds.includes(pledgerId)) {
+    spark.backerIds.push(pledgerId);
+  }
+
+  const pledger = users.get(pledgerId)!;
+  const item: FeedItem = {
+    id: `f_${Date.now()}`, type: "backing",
+    sparkId, sparkTitle: spark.title, actorName: pledger.displayName,
+    amount: 0, note: "Pledged support", createdAt: Date.now(),
+  };
+  feed.unshift(item);
+  broadcast("pledge", { sparkId, pledgerId, pledgerName: pledger.displayName });
+
+  // Check ignite threshold
+  if (spark.backerIds.length >= IGNITE_THRESHOLD && spark.status === "active") {
+    spark.status = "ignited";
+    spark.ignitedAt = Date.now();
+    spark.raised = spark.goal;
+    const igniteItem: FeedItem = {
+      id: `f_ign_${Date.now()}`, type: "spark_ignited",
+      sparkId, sparkTitle: spark.title, actorName: "Community",
+      createdAt: Date.now(),
+    };
+    feed.unshift(igniteItem);
+    broadcast("spark_ignited", spark);
+  }
+
+  return spark;
+}
+
+export function getSparkBackings(sparkId: string): Backing[] {
+  return backings.filter((b) => b.sparkId === sparkId);
 }
 
 export function getSparks(filter?: "active" | "ignited" | "all"): Spark[] {
