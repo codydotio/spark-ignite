@@ -41,8 +41,7 @@ export default function Dashboard({ sparks, feedItems, chainData, stats, current
           </button>
 
           {/* Center title */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-            <span className="text-lg">🔥</span>
+          <div className="absolute left-1/2 -translate-x-1/2">
             <h1 style={{ fontSize: 18, fontWeight: 700, background: "linear-gradient(135deg, #60A5FA, #818CF8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Spark Ignite
             </h1>

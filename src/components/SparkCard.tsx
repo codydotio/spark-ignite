@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import type { Spark } from "@/lib/types";
 import { IGNITE_THRESHOLD, tokensToUsd, formatUsd } from "@/lib/types";
 
@@ -12,15 +11,13 @@ interface Props {
 
 export default function SparkCard({ spark, currentUserId, onTap }: Props) {
   const pct = Math.min(100, Math.round((spark.raised / spark.goal) * 100));
-  const backersNeeded = Math.max(0, IGNITE_THRESHOLD - spark.backerIds.length);
   const isIgnited = spark.status === "ignited";
   const isCreator = currentUserId === spark.creatorId;
   const usdRaised = formatUsd(tokensToUsd(spark.raised));
   const usdGoal = formatUsd(spark.goalUsd);
 
   return (
-    <motion.button
-      layout
+    <button
       onClick={() => onTap(spark)}
       className={`w-full text-left rounded-2xl border overflow-hidden transition-colors active:scale-[0.98] ${
         isIgnited
@@ -56,7 +53,7 @@ export default function SparkCard({ spark, currentUserId, onTap }: Props) {
         <div className="mb-2.5">
           <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
             <div
-              className={`h-full rounded-full progress-bar-fill ${
+              className={`h-full rounded-full ${
                 isIgnited
                   ? "bg-gradient-to-r from-ignite-flame to-ignite-gold"
                   : "bg-gradient-to-r from-ignite-cosmic to-ignite-teal"
@@ -68,15 +65,13 @@ export default function SparkCard({ spark, currentUserId, onTap }: Props) {
 
         {/* Stats row */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] text-white/50">
-              <span className="font-semibold text-ignite-gold">{usdRaised}</span>
-              <span className="text-white/25"> of {usdGoal}</span>
-            </span>
-          </div>
+          <span className="text-[11px] text-white/50">
+            <span className="font-semibold text-ignite-gold">{usdRaised}</span>
+            <span className="text-white/25"> of {usdGoal}</span>
+          </span>
 
+          {/* Pledge dots + chevron */}
           <div className="flex items-center gap-2">
-            {/* Pledge dots */}
             <div className="flex items-center gap-0.5">
               {Array.from({ length: IGNITE_THRESHOLD }).map((_, i) => (
                 <div
@@ -89,17 +84,12 @@ export default function SparkCard({ spark, currentUserId, onTap }: Props) {
                 />
               ))}
             </div>
-            <span className="text-[10px] text-white/25">
-              {isIgnited ? "Ignited" : `${backersNeeded} more`}
-            </span>
-
-            {/* Chevron */}
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-white/15 ml-1">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-white/15">
               <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
         </div>
       </div>
-    </motion.button>
+    </button>
   );
 }
