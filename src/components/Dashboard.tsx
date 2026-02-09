@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import type { Spark, FeedItem, ChainData, UserStats } from "@/lib/types";
+import { tokensToUsd, formatUsd } from "@/lib/types";
 import SparkCard from "./SparkCard";
 import Feed from "./Feed";
 import IgniteGraph from "./KindnessGraph";
@@ -58,7 +59,7 @@ export default function Dashboard({ sparks, feedItems, chainData, stats, current
           {/* Token badge — compact */}
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.04]">
             <div className="w-1.5 h-1.5 rounded-full bg-ignite-gold" />
-            <span className="text-xs font-semibold text-ignite-gold">{stats.balance}</span>
+            <span className="text-xs font-semibold text-ignite-gold">{formatUsd(tokensToUsd(stats.balance))}</span>
           </div>
         </div>
 

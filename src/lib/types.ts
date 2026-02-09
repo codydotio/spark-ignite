@@ -21,10 +21,13 @@ export interface Spark {
   title: string;
   description: string;
   category: SparkCategory;
-  goal: number;
-  raised: number;
+  goalUsd: number;       // Goal in USD (stablecoin-pegged)
+  goal: number;          // Goal in tokens (derived from goalUsd / TOKEN_USD)
+  raised: number;        // Tokens raised so far
   backerIds: string[];
   status: "active" | "ignited" | "completed";
+  alienMatched: boolean; // Eligible for Alien matching
+  matchedAmount: number; // How much Alien has matched (in tokens)
   createdAt: number;
   ignitedAt?: number;
 }
@@ -124,8 +127,10 @@ export interface AIAgentState {
   trendDirection: "rising" | "falling" | "stable";
 }
 
-export const IGNITE_THRESHOLD = 3; // unique backers needed to ignite
-export const INITIAL_BALANCE = 10;
+export const IGNITE_THRESHOLD = 3;   // unique backers needed to ignite
+export const INITIAL_BALANCE = 500;  // starting tokens (~$250 USD)
+export const TOKEN_USD = 0.50;       // 1 token = $0.50 USD (USDC-pegged stable rate)
+export const MAX_GOAL_USD = 5000;    // max $5,000 per spark
 export const CATEGORY_EMOJI: Record<SparkCategory, string> = {
   cause: "🌍",
   art: "🎨",
@@ -133,3 +138,18 @@ export const CATEGORY_EMOJI: Record<SparkCategory, string> = {
   community: "🤝",
   other: "✨",
 };
+
+// Currency helpers
+export function tokensToUsd(tokens: number): number {
+  return tokens * TOKEN_USD;
+}
+export function usdToTokens(usd: number): number {
+  return Math.round(usd / TOKEN_USD);
+}
+export function formatUsd(usd: number): string {
+  return usd >= 1000 ? `$${(usd / 1000).toFixed(1)}k` : `$${usd.toFixed(0)}`;
+}
+export function formatTokenUsd(tokens: number): string {
+  const usd = tokensToUsd(tokens);
+  return `${tokens} tokens (${formatUsd(usd)})`;
+}

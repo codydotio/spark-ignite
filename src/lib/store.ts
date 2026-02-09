@@ -1,7 +1,7 @@
 // IGNITE — In-Memory Store
 
 import type { AlienUser, Spark, Backing, FeedItem, UserStats, ChainData, ChainNode, ChainLink, AIAgentState, AIInsight } from "./types";
-import { IGNITE_THRESHOLD, INITIAL_BALANCE } from "./types";
+import { IGNITE_THRESHOLD, INITIAL_BALANCE, TOKEN_USD, usdToTokens } from "./types";
 
 const users = new Map<string, AlienUser>();
 const sparks = new Map<string, Spark>();
@@ -35,29 +35,33 @@ function seed() {
       creatorId: "alien_s01", creatorName: "Nova",
       title: "AI Music Video for Indie Artists",
       description: "Fund AI-generated music videos for 3 independent musicians who can't afford traditional production. Verified humans vote on which artists get selected.",
-      category: "art", goal: 25, raised: 18, backerIds: ["alien_s02", "alien_s03"],
+      category: "art", goalUsd: 500, goal: usdToTokens(500), raised: 360, backerIds: ["alien_s02", "alien_s03"],
       status: "active", createdAt: Date.now() - 500000,
+      alienMatched: true, matchedAmount: 0,
     },
     {
       creatorId: "alien_s03", creatorName: "Sage",
       title: "Community Garden Drone Mapping",
       description: "Use AI + drone footage to map and optimize 5 community gardens in SF. All participants verified — no corporate astroturfing.",
-      category: "cause", goal: 15, raised: 15, backerIds: ["alien_s01", "alien_s02", "alien_s04"],
+      category: "cause", goalUsd: 750, goal: usdToTokens(750), raised: usdToTokens(750), backerIds: ["alien_s01", "alien_s02", "alien_s04"],
       status: "ignited", createdAt: Date.now() - 400000, ignitedAt: Date.now() - 100000,
+      alienMatched: true, matchedAmount: usdToTokens(750),
     },
     {
       creatorId: "alien_s05", creatorName: "Ember",
       title: "Open-Source AI Tutor for Kids",
       description: "Build a free AI tutoring app for underserved schools. Needs funding for API costs. Every backer is a verified human who believes in education equity.",
-      category: "tech", goal: 30, raised: 8, backerIds: ["alien_s06"],
+      category: "tech", goalUsd: 2000, goal: usdToTokens(2000), raised: 800, backerIds: ["alien_s06"],
       status: "active", createdAt: Date.now() - 300000,
+      alienMatched: true, matchedAmount: 0,
     },
     {
       creatorId: "alien_s04", creatorName: "River",
       title: "Neighborhood Skill-Share Platform",
       description: "Create a hyper-local platform where verified neighbors teach each other skills — cooking, coding, carpentry. Trust starts with real identity.",
-      category: "community", goal: 20, raised: 5, backerIds: ["alien_s01"],
+      category: "community", goalUsd: 300, goal: usdToTokens(300), raised: 200, backerIds: ["alien_s01"],
       status: "active", createdAt: Date.now() - 200000,
+      alienMatched: false, matchedAmount: 0,
     },
   ];
 
@@ -109,20 +113,24 @@ export function getUserStats(userId: string): UserStats {
 }
 
 export function createSpark(
-  creatorId: string, title: string, description: string, goal: number, category: string
+  creatorId: string, title: string, description: string, goalUsd: number, category: string
 ): Spark | { error: string } {
   if (!users.has(creatorId)) return { error: "Not verified" };
   if (!title || title.length < 3) return { error: "Title too short" };
   if (!description || description.length < 10) return { error: "Description too short" };
-  if (goal < 5 || goal > 100) return { error: "Goal must be 5-100 tokens" };
+  if (goalUsd < 10 || goalUsd > 5000) return { error: "Goal must be $10-$5,000" };
 
   const id = `spark_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   const creator = users.get(creatorId)!;
+  const goal = usdToTokens(goalUsd);
+  // Sparks over $500 are eligible for Alien matching
+  const alienMatched = goalUsd >= 500;
   const spark: Spark = {
     id, creatorId, creatorName: creator.displayName,
     title, description,
     category: (["cause", "art", "tech", "community", "other"].includes(category) ? category : "other") as Spark["category"],
-    goal, raised: 0, backerIds: [], status: "active",
+    goalUsd, goal, raised: 0, backerIds: [], status: "active",
+    alienMatched, matchedAmount: 0,
     createdAt: Date.now(),
   };
 
@@ -179,6 +187,10 @@ export function backSpark(
     spark.status = "ignited";
     spark.ignitedAt = Date.now();
     spark.raised = spark.goal;
+    // Alien matching — if eligible, Alien matches the community's funding
+    if (spark.alienMatched) {
+      spark.matchedAmount = spark.goal;
+    }
     const igniteItem: FeedItem = {
       id: `f_ign_${Date.now()}`, type: "spark_ignited",
       sparkId, sparkTitle: spark.title, actorName: "Community",
@@ -219,6 +231,10 @@ export function pledgeSpark(
     spark.status = "ignited";
     spark.ignitedAt = Date.now();
     spark.raised = spark.goal;
+    // Alien matching — if eligible, Alien matches the community's funding
+    if (spark.alienMatched) {
+      spark.matchedAmount = spark.goal;
+    }
     const igniteItem: FeedItem = {
       id: `f_ign_${Date.now()}`, type: "spark_ignited",
       sparkId, sparkTitle: spark.title, actorName: "Community",

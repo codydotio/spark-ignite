@@ -2,8 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { Spark } from "@/lib/types";
-import { IGNITE_THRESHOLD } from "@/lib/types";
-import { TOKEN_USD_RATE } from "./SparkDetailView";
+import { IGNITE_THRESHOLD, tokensToUsd, formatUsd } from "@/lib/types";
 
 interface Props {
   spark: Spark;
@@ -16,8 +15,8 @@ export default function SparkCard({ spark, currentUserId, onTap }: Props) {
   const backersNeeded = Math.max(0, IGNITE_THRESHOLD - spark.backerIds.length);
   const isIgnited = spark.status === "ignited";
   const isCreator = currentUserId === spark.creatorId;
-  const hasPledged = currentUserId ? spark.backerIds.includes(currentUserId) : false;
-  const usdRaised = (spark.raised * TOKEN_USD_RATE).toFixed(2);
+  const usdRaised = formatUsd(tokensToUsd(spark.raised));
+  const usdGoal = formatUsd(spark.goalUsd);
 
   return (
     <motion.button
@@ -38,11 +37,18 @@ export default function SparkCard({ spark, currentUserId, onTap }: Props) {
             <h3 className="text-[15px] font-semibold text-white leading-tight truncate">{spark.title}</h3>
             <p className="text-[11px] text-white/30 mt-0.5">by {spark.creatorName}{isCreator ? " (you)" : ""}</p>
           </div>
-          {isIgnited && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-ignite-flame/15 text-ignite-flame font-semibold flex-shrink-0">
-              IGNITED
-            </span>
-          )}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {spark.alienMatched && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-ignite-teal/15 text-ignite-teal font-semibold">
+                🛸 Matched
+              </span>
+            )}
+            {isIgnited && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-ignite-flame/15 text-ignite-flame font-semibold">
+                IGNITED
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Description */}
@@ -66,9 +72,8 @@ export default function SparkCard({ spark, currentUserId, onTap }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-[11px] text-white/50">
-              <span className="font-semibold text-ignite-gold">{spark.raised}</span>
-              <span className="text-white/25">/{spark.goal}</span>
-              <span className="text-white/20 ml-1">${usdRaised}</span>
+              <span className="font-semibold text-ignite-gold">{usdRaised}</span>
+              <span className="text-white/25"> of {usdGoal}</span>
             </span>
           </div>
 

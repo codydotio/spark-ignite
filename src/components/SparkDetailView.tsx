@@ -3,14 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Spark } from "@/lib/types";
-import { IGNITE_THRESHOLD, CATEGORY_EMOJI } from "@/lib/types";
-
-// Constants
-export const TOKEN_USD_RATE = 0.47;
-
-export function formatUsd(tokens: number): string {
-  return "$" + (tokens * TOKEN_USD_RATE).toFixed(2);
-}
+import { IGNITE_THRESHOLD, CATEGORY_EMOJI, tokensToUsd, formatUsd } from "@/lib/types";
 
 interface Props {
   spark: Spark;
@@ -52,6 +45,11 @@ export default function SparkDetailView({
   const fundingPercentage = Math.min(100, Math.round((spark.raised / spark.goal) * 100));
   const isIgnited = spark.status === "ignited";
 
+  const raisedUsd = formatUsd(tokensToUsd(spark.raised));
+  const goalUsd = formatUsd(spark.goalUsd);
+  const matchedUsd = spark.matchedAmount > 0 ? formatUsd(tokensToUsd(spark.matchedAmount)) : null;
+  const fundAmountUsd = formatUsd(tokensToUsd(fundAmount));
+
   // Mock backer data - in production this would come from API
   const backers: BackerDisplay[] = useMemo(() => {
     const mockAmounts = [5, 10, 3, 7, 2, 15];
@@ -69,7 +67,7 @@ export default function SparkDetailView({
       name: `Backer ${index + 1}`,
       amount: mockAmounts[index % mockAmounts.length],
       note: mockNotes[index % mockNotes.length],
-      createdAt: spark.createdAt + (index + 1) * 3600000, // Stagger by 1 hour
+      createdAt: spark.createdAt + (index + 1) * 3600000,
       avatar: `avatar-${index + 1}`,
     }));
   }, [spark.backerIds, spark.createdAt]);
@@ -100,7 +98,7 @@ export default function SparkDetailView({
     try {
       await onFund(spark.id, fundAmount);
       setShowFundSuccess(true);
-      setFundAmount(5); // Reset
+      setFundAmount(5);
       setTimeout(() => setShowFundSuccess(false), 2000);
     } catch (err) {
       setFundError(err instanceof Error ? err.message : "Failed to fund. Please try again.");
@@ -131,7 +129,6 @@ export default function SparkDetailView({
         className="sticky top-0 z-30 bg-ignite-void/80 backdrop-blur-sm border-b border-white/5 px-4 py-3"
       >
         <div className="flex items-center justify-between gap-3">
-          {/* Back button */}
           <motion.button
             onClick={onBack}
             whileHover={{ scale: 1.1 }}
@@ -141,12 +138,10 @@ export default function SparkDetailView({
             <span className="text-lg">←</span>
           </motion.button>
 
-          {/* Title */}
           <h1 className="flex-1 text-center text-base font-bold text-white truncate px-2">
             {spark.title}
           </h1>
 
-          {/* Share button - only for creator */}
           {isCreator && (
             <motion.button
               onClick={() => onShare(spark)}
@@ -173,7 +168,6 @@ export default function SparkDetailView({
         >
           {/* Circular Progress */}
           <div className="relative w-48 h-48 mb-6">
-            {/* Background circle */}
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 200">
               <circle
                 cx="100"
@@ -183,7 +177,6 @@ export default function SparkDetailView({
                 stroke="rgba(255,255,255,0.05)"
                 strokeWidth="8"
               />
-              {/* Progress circle */}
               <motion.circle
                 cx="100"
                 cy="100"
@@ -215,23 +208,21 @@ export default function SparkDetailView({
                 className="text-center"
               >
                 <p className="text-sm text-white/60 mb-1">Raised</p>
-                <p className="text-3xl font-bold gradient-text mb-2">{spark.raised}</p>
-                <p className="text-xs text-white/40">of {spark.goal} tokens</p>
+                <p className="text-3xl font-bold gradient-text mb-1">{raisedUsd}</p>
+                <p className="text-xs text-white/40">of {goalUsd}</p>
               </motion.div>
             </div>
           </div>
 
-          {/* Token and USD amounts */}
+          {/* USD amounts + ignited status */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-center mb-6"
+            className="text-center mb-4"
           >
-            <p className="text-sm text-white/60 mb-1">
-              {spark.raised} tokens ≈ <span className="text-ignite-gold font-bold">
-                {formatUsd(spark.raised)}
-              </span>
+            <p className="text-xs text-white/40 mb-1">
+              {spark.raised} tokens @ $0.50/token
             </p>
             {isIgnited && (
               <motion.span
@@ -243,6 +234,34 @@ export default function SparkDetailView({
               </motion.span>
             )}
           </motion.div>
+
+          {/* Alien Matched Badge */}
+          {spark.alienMatched && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.25 }}
+              className="mb-4 px-4 py-2.5 rounded-xl bg-gradient-to-r from-ignite-cosmic/10 to-ignite-teal/10 border border-ignite-teal/20"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base">🛸</span>
+                <div>
+                  <p className="text-xs font-bold text-ignite-teal">
+                    {isIgnited && spark.matchedAmount > 0
+                      ? `Alien Matched — ${matchedUsd}`
+                      : "Alien Matched Eligible"
+                    }
+                  </p>
+                  <p className="text-[10px] text-white/35 mt-0.5">
+                    {isIgnited && spark.matchedAmount > 0
+                      ? "Alien matched the community's funding"
+                      : "Alien will match when ignited by the community"
+                    }
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Category and creator info */}
           <div className="flex items-center gap-4 text-white/60 text-sm mb-2">
@@ -311,7 +330,7 @@ export default function SparkDetailView({
               animate={{ scale: 1 }}
               className="w-full py-3 rounded-lg font-bold text-white/60 bg-white/5 flex items-center justify-center gap-2"
             >
-              <span>✓</span> You've pledged
+              <span>✓</span> You&apos;ve pledged
             </motion.div>
           )}
 
@@ -369,7 +388,7 @@ export default function SparkDetailView({
               placeholder="Enter amount"
             />
             <p className="text-xs text-ignite-gold mt-1">
-              ≈ {formatUsd(fundAmount)}
+              ≈ {fundAmountUsd}
             </p>
           </div>
 
@@ -386,7 +405,7 @@ export default function SparkDetailView({
                     : "bg-white/5 text-white/60 hover:bg-white/10"
                 }`}
               >
-                {amount}
+                {amount} <span className="text-[9px] opacity-60">{formatUsd(tokensToUsd(amount))}</span>
               </motion.button>
             ))}
           </div>
@@ -399,7 +418,7 @@ export default function SparkDetailView({
             whileTap={{ scale: 0.98 }}
             className="w-full py-3 rounded-lg font-bold text-ignite-void bg-ignite-teal disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[44px]"
           >
-            {fundingInProgress ? "Funding..." : `Fund ${fundAmount} token${fundAmount !== 1 ? "s" : ""}`}
+            {fundingInProgress ? "Funding..." : `Fund ${fundAmount} token${fundAmount !== 1 ? "s" : ""} (${fundAmountUsd})`}
           </motion.button>
 
           <AnimatePresence>
@@ -445,22 +464,20 @@ export default function SparkDetailView({
                   transition={{ delay: 0.3 + index * 0.05 }}
                   className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors"
                 >
-                  {/* Avatar */}
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-ignite-cosmic to-ignite-flame flex items-center justify-center text-xs font-bold text-white">
                     {getInitial(backer.name)}
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-2 mb-1">
                       <p className="text-sm font-bold text-white truncate">{backer.name}</p>
                       <p className="text-xs text-ignite-gold font-bold flex-shrink-0">
-                        {backer.amount}
+                        {backer.amount > 0 ? formatUsd(tokensToUsd(backer.amount)) : "Pledged"}
                       </p>
                     </div>
                     {backer.note && (
                       <p className="text-xs text-white/60 mb-1 line-clamp-1 italic">
-                        "{backer.note}"
+                        &quot;{backer.note}&quot;
                       </p>
                     )}
                     <p className="text-xs text-white/40">{timeAgo(backer.createdAt)}</p>
@@ -481,7 +498,6 @@ export default function SparkDetailView({
           >
             <h2 className="text-sm font-bold text-white mb-4">Creator Tools</h2>
 
-            {/* Share via SMS */}
             <motion.button
               onClick={() => {
                 if (navigator.share) {
@@ -501,7 +517,6 @@ export default function SparkDetailView({
               Share via SMS
             </motion.button>
 
-            {/* Edit description */}
             <motion.button
               disabled
               whileHover={{ scale: 1.02 }}
@@ -520,8 +535,8 @@ export default function SparkDetailView({
                 className="p-3 rounded-lg bg-white/5 border border-white/5"
               >
                 <p className="text-xs text-white/60 mb-1">Total Raised</p>
-                <p className="text-lg font-bold text-ignite-gold">{spark.raised}</p>
-                <p className="text-xs text-white/40 mt-1">{formatUsd(spark.raised)}</p>
+                <p className="text-lg font-bold text-ignite-gold">{raisedUsd}</p>
+                <p className="text-xs text-white/40 mt-1">{spark.raised} tokens</p>
               </motion.div>
 
               <motion.div
@@ -535,6 +550,20 @@ export default function SparkDetailView({
                 <p className="text-xs text-white/40 mt-1">of {IGNITE_THRESHOLD} needed</p>
               </motion.div>
             </div>
+
+            {/* Alien Matched Stats */}
+            {spark.alienMatched && spark.matchedAmount > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.45 }}
+                className="mt-3 p-3 rounded-lg bg-ignite-teal/5 border border-ignite-teal/10"
+              >
+                <p className="text-xs text-white/60 mb-1">🛸 Alien Matched</p>
+                <p className="text-lg font-bold text-ignite-teal">{matchedUsd}</p>
+                <p className="text-xs text-white/40 mt-1">{spark.matchedAmount} tokens matched</p>
+              </motion.div>
+            )}
           </motion.section>
         )}
 

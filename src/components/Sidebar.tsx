@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import type { Spark, UserStats } from "@/lib/types";
+import { tokensToUsd, formatUsd } from "@/lib/types";
 
 interface Props {
   isOpen: boolean;
@@ -54,8 +55,8 @@ export default function Sidebar({ isOpen, onClose, stats, sparks, currentUserId,
               {/* Stats row */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="text-center px-2 py-2 rounded-xl bg-white/[0.04]">
-                  <div className="text-sm font-bold text-ignite-gold">{stats.balance}</div>
-                  <div className="text-[9px] text-white/30 mt-0.5">Tokens</div>
+                  <div className="text-sm font-bold text-ignite-gold">{formatUsd(tokensToUsd(stats.balance))}</div>
+                  <div className="text-[9px] text-white/30 mt-0.5">{stats.balance} tokens</div>
                 </div>
                 <div className="text-center px-2 py-2 rounded-xl bg-white/[0.04]">
                   <div className="text-sm font-bold text-ignite-teal">{stats.sparksBacked}</div>
@@ -81,7 +82,7 @@ export default function Sidebar({ isOpen, onClose, stats, sparks, currentUserId,
                       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${s.status === "ignited" ? "bg-ignite-flame" : "bg-ignite-cosmic"}`} />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-white/80 truncate">{s.title}</div>
-                        <div className="text-[10px] text-white/30">{s.raised}/{s.goal} tokens · {s.backerIds.length} backers</div>
+                        <div className="text-[10px] text-white/30">{formatUsd(tokensToUsd(s.raised))}/{formatUsd(s.goalUsd)} · {s.backerIds.length} backers</div>
                       </div>
                     </div>
                   ))
@@ -116,7 +117,7 @@ export default function Sidebar({ isOpen, onClose, stats, sparks, currentUserId,
                 <div className="px-2 py-2 text-xs text-white/40 space-y-1.5">
                   <div className="flex justify-between">
                     <span>Total contributed</span>
-                    <span className="text-ignite-gold font-medium">{stats.totalContributed} tokens</span>
+                    <span className="text-ignite-gold font-medium">{formatUsd(tokensToUsd(stats.totalContributed))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Sparks ignited</span>

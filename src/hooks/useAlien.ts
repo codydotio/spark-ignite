@@ -73,12 +73,12 @@ export function useAlien() {
     }
   }, []);
 
-  const createSpark = useCallback(async (title: string, description: string, goal: number, category: string): Promise<Spark> => {
+  const createSpark = useCallback(async (title: string, description: string, goalUsd: number, category: string): Promise<Spark> => {
     if (!user) throw new Error("Not verified");
     const res = await fetch("/api/spark", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ creatorId: user.id, displayName: user.displayName, title, description, goal, category }),
+      body: JSON.stringify({ creatorId: user.id, displayName: user.displayName, title, description, goalUsd, category }),
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
