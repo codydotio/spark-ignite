@@ -124,7 +124,6 @@ export default function SparkDetailView({
     <div className="fixed inset-0 bg-ignite-void flex flex-col safe-top overflow-hidden">
       {/* Header */}
       <motion.header
-        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="sticky top-0 z-30 bg-ignite-void/80 backdrop-blur-sm border-b border-white/5 px-4 py-3"
       >
@@ -161,7 +160,6 @@ export default function SparkDetailView({
       <div className="flex-1 overflow-y-auto">
         {/* Hero Section - Progress Ring */}
         <motion.section
-          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
           className="px-4 py-8 flex flex-col items-center justify-center"
@@ -216,7 +214,6 @@ export default function SparkDetailView({
 
           {/* USD amounts + ignited status */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="text-center mb-4"
@@ -238,7 +235,6 @@ export default function SparkDetailView({
           {/* Alien Matched Badge */}
           {spark.alienMatched && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.25 }}
               className="mb-4 px-4 py-2.5 rounded-xl bg-gradient-to-r from-ignite-cosmic/10 to-ignite-teal/10 border border-ignite-teal/20"
@@ -276,7 +272,6 @@ export default function SparkDetailView({
 
         {/* Pledge Section */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           className="px-4 py-6 border-t border-white/5"
@@ -370,7 +365,6 @@ export default function SparkDetailView({
 
         {/* Fund Section */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="px-4 py-6 border-t border-white/5"
@@ -459,7 +453,6 @@ export default function SparkDetailView({
               {backers.map((backer, index) => (
                 <motion.div
                   key={backer.id}
-                  initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 + index * 0.05 }}
                   className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors"

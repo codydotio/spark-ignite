@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { AnimatePresence } from "framer-motion";
 import { useAlien, useIgniteData } from "@/hooks/useAlien";
 import OnboardingScreen from "@/components/OnboardingScreen";
 import Dashboard from "@/components/Dashboard";
@@ -60,18 +59,16 @@ export default function Home() {
         onClose={() => setShareSpark(null)}
       />
 
-      <AnimatePresence>
-        {freshSpark && (
-          <SparkDetailView
-            spark={freshSpark}
-            currentUserId={user.id}
-            onBack={() => setActiveSpark(null)}
-            onPledge={pledgeSpark}
-            onFund={fundSpark}
-            onShare={(spark) => setShareSpark(spark)}
-          />
-        )}
-      </AnimatePresence>
+      {freshSpark && (
+        <SparkDetailView
+          spark={freshSpark}
+          currentUserId={user.id}
+          onBack={() => setActiveSpark(null)}
+          onPledge={pledgeSpark}
+          onFund={fundSpark}
+          onShare={(spark) => setShareSpark(spark)}
+        />
+      )}
     </>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 
 interface Props {
@@ -10,121 +9,76 @@ interface Props {
 }
 
 export default function OnboardingScreen({ onVerify, isVerifying, error }: Props) {
-  const [started, setStarted] = useState(false);
-
   return (
-    <div style={{ position: "fixed", inset: 0, display: "flex", flexDirection: "column", background: "#0a0a1a" }}>
-      {/* Ambient glow */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div
-          className="absolute w-[500px] h-[500px] rounded-full opacity-[0.07]"
-          style={{ background: "radial-gradient(circle, #FF8C42, transparent 70%)", left: "-10%", top: "15%" }}
-        />
-        <div
-          className="absolute w-[400px] h-[400px] rounded-full opacity-[0.05]"
-          style={{ background: "radial-gradient(circle, #FF4B6E, transparent 70%)", right: "-15%", bottom: "20%" }}
-        />
+    <div style={{ position: "fixed", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#060B14" }}>
+      {/* Subtle blue ambient glow */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+        <div style={{ position: "absolute", width: 600, height: 600, borderRadius: "50%", opacity: 0.06, background: "radial-gradient(circle, #3B82F6, transparent 70%)", left: "-15%", top: "10%" }} />
+        <div style={{ position: "absolute", width: 500, height: 500, borderRadius: "50%", opacity: 0.04, background: "radial-gradient(circle, #6366F1, transparent 70%)", right: "-10%", bottom: "15%" }} />
       </div>
 
-      {!started ? (
-        <>
-          {/* Center content */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 10, padding: "0 24px" }}>
-            <div className="text-6xl mb-4">🔥</div>
+      {/* Card */}
+      <div style={{
+        position: "relative", zIndex: 10, width: "calc(100% - 40px)", maxWidth: 380,
+        background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 24, padding: "40px 28px 32px", display: "flex", flexDirection: "column", alignItems: "center"
+      }}>
+        <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 6, background: "linear-gradient(135deg, #60A5FA, #818CF8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          Spark Ignite
+        </h1>
+        <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.3)", marginBottom: 28 }}>
+          Powered by Alien Protocol
+        </p>
 
-            <h1 className="text-3xl font-bold gradient-text tracking-tight mb-2">Spark Ignite</h1>
-            <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 13, fontWeight: 500, marginBottom: 32 }}>Proof-of-humanity crowdfunding on the Alien Network</p>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.6, marginBottom: 32, maxWidth: 300 }}>
+          A proof-of-humanity crowdfunding platform where verified humans create sparks to be ignited by the community.
+        </p>
 
-            <div style={{ width: "100%", maxWidth: 320, display: "flex", flexDirection: "column", gap: 10 }}>
-              {[
-                { icon: "👤", text: "Verified humans propose causes, art & projects" },
-                { icon: "🗳️", text: "Pledges from real people unlock ignition" },
-                { icon: "🛸", text: "Alien ID keeps bots out — real trust only" },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
-                >
-                  <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>{item.text}</span>
-                </div>
-              ))}
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 20, marginBottom: 36 }}>
+          {[
+            { title: "Propose", desc: "Verified humans submit causes, art, and missions." },
+            { title: "Ignite", desc: "Pledges unlock ignition with one human, one vote." },
+            { title: "Fund", desc: "Tokens flow after consensus — bots don't get a seat." },
+          ].map((item, i) => (
+            <div key={i} style={{ textAlign: "center" }}>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>{item.title}</h3>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>{item.desc}</p>
+              {i < 2 && <div style={{ width: 40, height: 1, background: "rgba(255,255,255,0.06)", margin: "16px auto 0" }} />}
             </div>
-          </div>
+          ))}
+        </div>
 
-          {/* Bottom CTA */}
-          <div style={{ padding: "0 24px 40px", position: "relative", zIndex: 10 }}>
-            <motion.button
-              onClick={() => setStarted(true)}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-ignite-flame to-ignite-ember text-white font-semibold shadow-lg shadow-ignite-flame/10"
-              style={{ fontSize: 16 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Login with Alien
-            </motion.button>
-            <p style={{ textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11, marginTop: 12 }}>
-              Powered by Alien Protocol
-            </p>
+        {error && (
+          <div style={{ marginBottom: 16, width: "100%", padding: "12px 16px", borderRadius: 16, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171", fontSize: 13, textAlign: "center" }}>
+            {error}
           </div>
-        </>
-      ) : (
-        <>
-          {/* Back button */}
-          <div style={{ padding: "16px 24px 0", position: "relative", zIndex: 10 }}>
-            <button
-              onClick={() => setStarted(false)}
-              style={{ display: "flex", alignItems: "center", gap: 4, color: "#FF8C42", fontSize: 15, fontWeight: 500, padding: "8px 0", background: "none", border: "none", cursor: "pointer" }}
-            >
-              <span style={{ fontSize: 18 }}>‹</span> Back
-            </button>
-          </div>
+        )}
 
-          {/* Center content */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 10, padding: "0 24px" }}>
-            <motion.div
-              className="text-6xl mb-5"
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              👽
-            </motion.div>
+        <motion.button
+          onClick={onVerify}
+          disabled={isVerifying}
+          style={{
+            width: "100%", padding: "14px 0", borderRadius: 16, border: "none", cursor: "pointer",
+            background: "linear-gradient(135deg, #3B82F6, #6366F1)", color: "white",
+            fontSize: 16, fontWeight: 600, boxShadow: "0 4px 24px rgba(59,130,246,0.25)",
+            opacity: isVerifying ? 0.5 : 1
+          }}
+          whileTap={{ scale: 0.97 }}
+        >
+          {isVerifying ? (
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Verifying...
+            </span>
+          ) : (
+            "Login with Alien →"
+          )}
+        </motion.button>
+      </div>
 
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: "white", marginBottom: 8 }}>Verify Your Humanity</h2>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", maxWidth: 280, lineHeight: 1.5, marginBottom: 32 }}>
-              Only verified humans can create and back sparks. No bots. No fake accounts. Real people funding real ideas.
-            </p>
-
-            {error && (
-              <div style={{ marginBottom: 20, width: "100%", maxWidth: 320, padding: "12px 16px", borderRadius: 16, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171", fontSize: 13, textAlign: "center" }}>
-                {error}
-              </div>
-            )}
-          </div>
-
-          {/* Bottom CTA */}
-          <div style={{ padding: "0 24px 40px", position: "relative", zIndex: 10 }}>
-            <motion.button
-              onClick={onVerify}
-              disabled={isVerifying}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-ignite-gold to-ignite-flame font-bold disabled:opacity-50 shadow-lg shadow-ignite-gold/10"
-              style={{ fontSize: 16, color: "#0a0a1a" }}
-              whileTap={{ scale: 0.97 }}
-            >
-              {isVerifying ? (
-                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                  <span className="inline-block w-4 h-4 border-2 border-ignite-void/30 border-t-ignite-void rounded-full animate-spin" />
-                  Verifying...
-                </span>
-              ) : (
-                "Verify with Alien ID"
-              )}
-            </motion.button>
-            <p style={{ textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11, marginTop: 12 }}>
-              Powered by Alien Protocol
-            </p>
-          </div>
-        </>
-      )}
+      <p style={{ position: "relative", zIndex: 10, marginTop: 20, fontSize: 11, color: "rgba(255,255,255,0.2)", textAlign: "center" }}>
+        Human-first. Sybil-resistant. Built to ignite real work.
+      </p>
     </div>
   );
 }

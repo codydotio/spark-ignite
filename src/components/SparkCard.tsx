@@ -21,8 +21,6 @@ export default function SparkCard({ spark, currentUserId, onTap }: Props) {
   return (
     <motion.button
       layout
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
       onClick={() => onTap(spark)}
       className={`w-full text-left rounded-2xl border overflow-hidden transition-colors active:scale-[0.98] ${
         isIgnited
