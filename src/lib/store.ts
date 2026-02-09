@@ -1,16 +1,100 @@
-// IGNITE — In-Memory Store
+// IGNITE — Persistent Store (Upstash Redis + In-Memory Cache)
 
 import type { AlienUser, Spark, Backing, FeedItem, UserStats, ChainData, ChainNode, ChainLink, AIAgentState, AIInsight } from "./types";
-import { IGNITE_THRESHOLD, INITIAL_BALANCE, TOKEN_USD, usdToTokens } from "./types";
+import { IGNITE_THRESHOLD, INITIAL_BALANCE, usdToTokens } from "./types";
+import { Redis } from "@upstash/redis";
 
-const users = new Map<string, AlienUser>();
-const sparks = new Map<string, Spark>();
-const backings: Backing[] = [];
-const balances = new Map<string, number>();
-const feed: FeedItem[] = [];
+// ---- Redis Client (graceful fallback to memory-only) ----
+let redis: Redis | null = null;
+try {
+  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+    redis = new Redis({
+      url: process.env.KV_REST_API_URL,
+      token: process.env.KV_REST_API_TOKEN,
+    });
+  } else if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+  }
+} catch {
+  // Redis not available — memory-only mode
+}
+
+const STORE_KEY = "ignite_store_v2";
+
+// ---- In-Memory State ----
+let users = new Map<string, AlienUser>();
+let sparks = new Map<string, Spark>();
+let backings: Backing[] = [];
+let balances = new Map<string, number>();
+let feed: FeedItem[] = [];
+let loaded = false;
 
 type Subscriber = (event: string, data: unknown) => void;
 const subscribers = new Set<Subscriber>();
+
+// ---- Serialization helpers ----
+interface StoreSnapshot {
+  users: Record<string, AlienUser>;
+  sparks: Record<string, Spark>;
+  backings: Backing[];
+  balances: Record<string, number>;
+  feed: FeedItem[];
+}
+
+function snapshot(): StoreSnapshot {
+  return {
+    users: Object.fromEntries(users),
+    sparks: Object.fromEntries(sparks),
+    backings,
+    balances: Object.fromEntries(balances),
+    feed: feed.slice(0, 200),
+  };
+}
+
+function restore(data: StoreSnapshot) {
+  users = new Map(Object.entries(data.users || {}));
+  sparks = new Map(Object.entries(data.sparks || {}));
+  backings = data.backings || [];
+  balances = new Map(Object.entries(data.balances || {}).map(([k, v]) => [k, Number(v)]));
+  feed = data.feed || [];
+}
+
+// ---- Persistence ----
+export async function ensureLoaded(): Promise<void> {
+  if (loaded) return;
+  loaded = true;
+
+  if (!redis) {
+    seed();
+    return;
+  }
+
+  try {
+    const data = await redis.get<StoreSnapshot>(STORE_KEY);
+    if (data && data.users && Object.keys(data.users).length > 0) {
+      restore(data);
+    } else {
+      // No data in Redis yet — seed and persist
+      seed();
+      await redis.set(STORE_KEY, snapshot());
+    }
+  } catch (err) {
+    console.error("Redis load failed, using memory:", err);
+    seed();
+  }
+}
+
+export async function persist(): Promise<void> {
+  if (!redis) return;
+  try {
+    await redis.set(STORE_KEY, snapshot());
+  } catch (err) {
+    console.error("Redis persist failed:", err);
+  }
+}
 
 // ---- Seed Data ----
 function seed() {
@@ -83,8 +167,6 @@ function seed() {
   feed.push(...seedFeed);
 }
 
-seed();
-
 // ---- API ----
 
 export function getUser(userId: string): AlienUser | undefined {
@@ -123,7 +205,6 @@ export function createSpark(
   const id = `spark_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   const creator = users.get(creatorId)!;
   const goal = usdToTokens(goalUsd);
-  // Sparks over $500 are eligible for Alien matching
   const alienMatched = goalUsd >= 500;
   const spark: Spark = {
     id, creatorId, creatorName: creator.displayName,
@@ -187,7 +268,6 @@ export function backSpark(
     spark.status = "ignited";
     spark.ignitedAt = Date.now();
     spark.raised = spark.goal;
-    // Alien matching — if eligible, Alien matches the community's funding
     if (spark.alienMatched) {
       spark.matchedAmount = spark.goal;
     }
@@ -212,7 +292,6 @@ export function pledgeSpark(
   if (spark.status !== "active") return { error: "Spark already ignited" };
   if (spark.creatorId === pledgerId) return { error: "Can't pledge your own spark" };
 
-  // Add pledger to backerIds if not already there
   if (!spark.backerIds.includes(pledgerId)) {
     spark.backerIds.push(pledgerId);
   }
@@ -231,7 +310,6 @@ export function pledgeSpark(
     spark.status = "ignited";
     spark.ignitedAt = Date.now();
     spark.raised = spark.goal;
-    // Alien matching — if eligible, Alien matches the community's funding
     if (spark.alienMatched) {
       spark.matchedAmount = spark.goal;
     }

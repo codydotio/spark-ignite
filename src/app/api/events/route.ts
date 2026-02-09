@@ -1,8 +1,9 @@
-import { subscribe } from "@/lib/store";
+import { subscribe, ensureLoaded } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  await ensureLoaded();
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({

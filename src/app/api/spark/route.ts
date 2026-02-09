@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { createSpark, getUserStats, registerUser, getUser } from "@/lib/store";
+import { createSpark, getUserStats, registerUser, getUser, ensureLoaded, persist } from "@/lib/store";
 
 export async function POST(request: Request) {
   try {
+    await ensureLoaded();
     const { creatorId, displayName, title, description, goalUsd, category } = await request.json();
 
     // Auto-register on cold start
@@ -13,6 +14,7 @@ export async function POST(request: Request) {
     const result = createSpark(creatorId, title, description, goalUsd, category);
     if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
     const stats = getUserStats(creatorId);
+    await persist();
     return NextResponse.json({ spark: result, stats });
   } catch {
     return NextResponse.json({ error: "Failed" }, { status: 500 });

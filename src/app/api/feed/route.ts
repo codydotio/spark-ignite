@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getSparks, getFeed, getChainData } from "@/lib/store";
+import { getSparks, getFeed, getChainData, ensureLoaded } from "@/lib/store";
 
 export async function GET(request: Request) {
+  await ensureLoaded();
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") || "sparks";
 
