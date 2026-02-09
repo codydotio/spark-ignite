@@ -13,7 +13,7 @@ export default function OnboardingScreen({ onVerify, isVerifying, error }: Props
   const [started, setStarted] = useState(false);
 
   return (
-    <div className="fixed inset-0 bg-ignite-void flex flex-col safe-top safe-bottom overflow-hidden">
+    <div className="fixed inset-0 bg-ignite-void flex flex-col safe-top overflow-y-auto">
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
