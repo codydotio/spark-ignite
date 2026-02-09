@@ -9,7 +9,7 @@ import ShareModal from "@/components/ShareModal";
 import type { Spark } from "@/lib/types";
 
 export default function Home() {
-  const { user, stats, isVerifying, error, verify, createSpark, backSpark } = useAlien();
+  const { user, stats, isVerifying, error, verify, createSpark, backSpark, logout } = useAlien();
   const { sparks, feedItems, chainData } = useIgniteData();
   const [showCreate, setShowCreate] = useState(false);
   const [shareSpark, setShareSpark] = useState<Spark | null>(null);
@@ -26,9 +26,11 @@ export default function Home() {
         chainData={chainData}
         stats={stats}
         currentUserId={user.id}
+        displayName={user.displayName}
         onCreateSpark={() => setShowCreate(true)}
         onBack={backSpark}
         onShare={(spark) => setShareSpark(spark)}
+        onLogout={logout}
       />
       <CreateSparkModal
         isOpen={showCreate}

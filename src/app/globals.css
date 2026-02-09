@@ -2,15 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Base ─── */
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background: #0a0a1a;
   color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
 }
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+/* ─── Safe area for native status bar ─── */
+.safe-top {
+  height: env(safe-area-inset-top, 0px);
+}
 
+/* ─── Scrollbar — hidden on mobile, thin on desktop ─── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+
+/* ─── Brand gradient text ─── */
 .gradient-text {
   background: linear-gradient(135deg, #FF8C42, #FF4B6E, #FFD700);
   -webkit-background-clip: text;
@@ -18,9 +34,10 @@ body {
   background-clip: text;
 }
 
+/* ─── Animations ─── */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(255, 140, 66, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(255, 140, 66, 0.4); }
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 140, 66, 0.15); }
+  50% { box-shadow: 0 0 40px rgba(255, 140, 66, 0.3); }
 }
 
 @keyframes shimmer {
@@ -29,11 +46,46 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,215,0,0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,0.06), transparent);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
 
 .progress-bar-fill {
   transition: width 0.6s ease-out;
+}
+
+/* ─── Native touch feel ─── */
+button, a {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* Active press state for native feel */
+button:active {
+  opacity: 0.85;
+  transition: opacity 0.05s;
+}
+
+/* ─── Range slider styling ─── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255,255,255,0.06);
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF8C42, #FF4B6E);
+  cursor: pointer;
+  border: 2px solid #0a0a1a;
+  box-shadow: 0 0 8px rgba(255, 140, 66, 0.3);
 }
