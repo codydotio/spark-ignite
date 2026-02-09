@@ -19,7 +19,6 @@ export default function CreateSparkModal({ isOpen, onClose, onCreate }: Props) {
   const [customGoal, setCustomGoal] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const effectiveGoal = customGoal ? parseInt(customGoal) || 0 : goalUsd;
   const goalTokens = usdToTokens(effectiveGoal);
@@ -34,15 +33,12 @@ export default function CreateSparkModal({ isOpen, onClose, onCreate }: Props) {
     setError(null);
     try {
       await onCreate(title, description, effectiveGoal, "community");
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        setTitle("");
-        setDescription("");
-        setGoalUsd(100);
-        setCustomGoal("");
-        onClose();
-      }, 1500);
+      // Parent handles closing modal + opening detail view
+      // Reset form state for next time
+      setTitle("");
+      setDescription("");
+      setGoalUsd(100);
+      setCustomGoal("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -68,13 +64,6 @@ export default function CreateSparkModal({ isOpen, onClose, onCreate }: Props) {
             className="w-full max-w-md bg-[#12122a] rounded-t-3xl border-t border-white/10 p-6 max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {success ? (
-              <div className="text-center py-8">
-                <div className="text-5xl mb-3">🔥</div>
-                <h3 className="text-xl font-bold gradient-text">Spark Created!</h3>
-                <p className="text-white/40 text-sm mt-2">Your idea is live. Share it to get it ignited.</p>
-              </div>
-            ) : (
               <>
                 {/* Handle bar */}
                 <div className="flex justify-center mb-5">
@@ -197,7 +186,6 @@ export default function CreateSparkModal({ isOpen, onClose, onCreate }: Props) {
                   Cancel
                 </button>
               </>
-            )}
           </motion.div>
         </motion.div>
       )}

@@ -12,16 +12,19 @@ import type { Spark } from "@/lib/types";
 
 export default function Home() {
   const { user, stats, isVerifying, error, verify, createSpark, pledgeSpark, fundSpark, logout } = useAlien();
-  const { sparks, feedItems, chainData } = useIgniteData();
+  const { sparks, feedItems, chainData, refresh } = useIgniteData();
   const [showCreate, setShowCreate] = useState(false);
   const [shareSpark, setShareSpark] = useState<Spark | null>(null);
   const [activeSpark, setActiveSpark] = useState<Spark | null>(null);
 
-  // Create spark then immediately open its detail view
-  const handleCreateSpark = useCallback(async (title: string, description: string, goal: number, category: string) => {
-    const spark = await createSpark(title, description, goal, category);
-    setTimeout(() => setActiveSpark(spark), 200);
-  }, [createSpark]);
+  // Create spark → close modal → open detail view → force refresh
+  const handleCreateSpark = useCallback(async (title: string, description: string, goalUsd: number, category: string) => {
+    const spark = await createSpark(title, description, goalUsd, category);
+    // Close modal immediately, open detail view, refresh list
+    setShowCreate(false);
+    setActiveSpark(spark);
+    refresh();
+  }, [createSpark, refresh]);
 
   if (!user) {
     return <OnboardingScreen onVerify={verify} isVerifying={isVerifying} error={error} />;
